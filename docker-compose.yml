@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL Database
   db:
@@ -39,6 +37,8 @@ services:
         }
     volumes:
       - wordpress_data:/var/www/html
+      - ./themes:/var/www/html/wp-content/themes
+      - ./plugins:/var/www/html/wp-content/plugins
     networks:
       - wordpress_network
 

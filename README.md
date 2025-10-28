@@ -12,6 +12,7 @@ A complete Docker Compose configuration for running WordPress with MySQL, Nginx 
 - **Automatic Redirects**: HTTP to HTTPS
 - **Optimized Caching**: Static file caching rules
 - **Easy Renewal**: Automated SSL certificate renewal
+- **Custom Themes & Plugins**: Local volume mappings for easy development and management
 
 ## Prerequisites
 
@@ -31,6 +32,8 @@ Ensure you have all these files in your directory:
 ├── .env.example
 ├── setup.sh
 ├── renewal.sh
+├── themes/              # Custom WordPress themes
+├── plugins/             # Custom WordPress plugins
 └── nginx/
     └── conf.d/
         ├── wordpress-http.conf
@@ -181,6 +184,53 @@ docker-compose pull wordpress
 docker-compose up -d wordpress
 ```
 
+## Custom Themes and Plugins
+
+This setup includes volume mappings for custom themes and plugins, allowing you to develop and manage them directly on your host machine.
+
+### Adding Custom Themes
+
+1. Place your theme folder in the `themes/` directory
+2. Your theme will automatically appear in WordPress admin under **Appearance → Themes**
+3. Changes made to theme files are immediately reflected (may need to clear cache)
+
+Example:
+```bash
+# Add a custom theme
+cp -r my-custom-theme/ themes/
+
+# Your theme is now available at:
+# /var/www/html/wp-content/themes/my-custom-theme
+```
+
+### Adding Custom Plugins
+
+1. Place your plugin folder in the `plugins/` directory
+2. Your plugin will automatically appear in WordPress admin under **Plugins**
+3. Activate the plugin from the WordPress admin panel
+
+Example:
+```bash
+# Add a custom plugin
+cp -r my-custom-plugin/ plugins/
+
+# Your plugin is now available at:
+# /var/www/html/wp-content/plugins/my-custom-plugin
+```
+
+### Development Workflow
+
+The volume mappings are bi-directional:
+- **Local → Container**: Files added to `themes/` or `plugins/` appear in WordPress
+- **Container → Local**: Themes/plugins installed via WordPress admin appear in local directories
+- **Live Updates**: Edit files locally and see changes immediately (no container restart needed)
+
+### Notes
+
+- Restart WordPress container if themes/plugins don't appear: `docker-compose restart wordpress`
+- File permissions are managed by Docker automatically
+- Any themes/plugins installed through WordPress admin will persist in these directories
+
 ## File Structure
 
 ```
@@ -189,6 +239,10 @@ docker-compose up -d wordpress
 ├── wordpress_wordpress_data/   # WordPress files
 ├── wordpress_certbot_data/     # Certbot challenge files
 └── wordpress_letsencrypt_data/ # SSL certificates
+
+Local directories (mounted as volumes):
+├── themes/                     # Custom WordPress themes (./themes → /var/www/html/wp-content/themes)
+└── plugins/                    # Custom WordPress plugins (./plugins → /var/www/html/wp-content/plugins)
 ```
 
 ## Nginx Configuration Details

@@ -1,0 +1,94 @@
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    
+    # SSL Settings (Mozilla Intermediate Configuration)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+
+    # OCSP Stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/letsencrypt/live/yourdomain.com/chain.pem;
+
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Logging
+    access_log /var/log/nginx/wordpress_access.log;
+    error_log /var/log/nginx/wordpress_error.log;
+
+    # Client upload size
+    client_max_body_size 64M;
+
+    # Root directory
+    root /var/www/html;
+    index index.php;
+
+    # For Let's Encrypt renewal
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # WordPress pretty permalinks
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    # PHP processing
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass wordpress:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        fastcgi_param HTTPS on;
+    }
+
+    # Deny access to sensitive files
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        log_not_found off;
+        access_log off;
+        allow all;
+    }
+
+    # Cache static files
+    location ~* \.(css|gif|ico|jpeg|jpg|js|png|svg|woff|woff2|ttf|eot)$ {
+        expires max;
+        log_not_found off;
+        access_log off;
+    }
+
+    # Deny access to uploads that aren't images, videos, music, etc.
+    location ~* ^/wp-content/uploads/.*\.php$ {
+        deny all;
+    }
+
+    # Deny access to any files with a .php extension in the uploads directory
+    location ~* /(?:uploads|files)/.*\.php$ {
+        deny all;
+    }
+}

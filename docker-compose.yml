@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: wordpress_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - wordpress_network
+    command: '--default-authentication-plugin=mysql_native_password'
+
+  # WordPress
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://${DOMAIN}');
+        define('WP_SITEURL', 'https://${DOMAIN}');
+        define('FORCE_SSL_ADMIN', true);
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+          $$_SERVER['HTTPS'] = 'on';
+        }
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - wordpress_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: wordpress_nginx
+    restart: always
+    depends_on:
+      - wordpress
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - wordpress_data:/var/www/html:ro
+      - certbot_data:/var/www/certbot:ro
+      - letsencrypt_data:/etc/letsencrypt:ro
+    networks:
+      - wordpress_network
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: wordpress_certbot
+    volumes:
+      - certbot_data:/var/www/certbot
+      - letsencrypt_data:/etc/letsencrypt
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN} -d www.${DOMAIN}
+
+volumes:
+  db_data:
+  wordpress_data:
+  certbot_data:
+  letsencrypt_data:
+
+networks:
+  wordpress_network:
+    driver: bridge

@@ -28,6 +28,7 @@ services:
       WORDPRESS_DB_USER: ${MYSQL_USER}
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
       WORDPRESS_TABLE_PREFIX: wp_
+      APACHE_SERVER_NAME: ${DOMAIN}
       WORDPRESS_CONFIG_EXTRA: |
         define('WP_HOME', 'https://${DOMAIN}');
         define('WP_SITEURL', 'https://${DOMAIN}');
@@ -55,7 +56,6 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
-      - wordpress_data:/var/www/html:ro
       - certbot_data:/var/www/certbot:ro
       - letsencrypt_data:/etc/letsencrypt:ro
     networks:

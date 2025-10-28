@@ -28,7 +28,7 @@ A complete Docker Compose configuration for running WordPress with MySQL, Nginx 
 Ensure you have all these files in your directory:
 ```
 .
-├── docker-compose.yml
+├── docker compose.yml
 ├── .env.example
 ├── setup.sh
 ├── renewal.sh
@@ -86,7 +86,7 @@ If you prefer manual setup:
 
 ```bash
 # Start database and WordPress first
-docker-compose up -d db wordpress nginx
+docker compose up -d db wordpress nginx
 
 # Wait for services to start
 sleep 10
@@ -96,7 +96,7 @@ sleep 10
 
 ```bash
 # Request certificate
-docker-compose run --rm certbot
+docker compose run --rm certbot
 
 # If successful, enable HTTPS configuration
 cp nginx/conf.d/wordpress-https.conf.template nginx/conf.d/wordpress-https.conf
@@ -105,7 +105,7 @@ cp nginx/conf.d/wordpress-https.conf.template nginx/conf.d/wordpress-https.conf
 sed -i 's/yourdomain.com/your-actual-domain.com/g' nginx/conf.d/wordpress-https.conf
 
 # Restart Nginx
-docker-compose restart nginx
+docker compose restart nginx
 ```
 
 ## SSL Certificate Renewal
@@ -127,8 +127,8 @@ crontab -e
 ### Option 2: Manual Renewal
 
 ```bash
-docker-compose run --rm certbot renew
-docker-compose restart nginx
+docker compose run --rm certbot renew
+docker compose restart nginx
 ```
 
 ## Useful Commands
@@ -137,51 +137,51 @@ docker-compose restart nginx
 
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f wordpress
-docker-compose logs -f nginx
-docker-compose logs -f db
+docker compose logs -f wordpress
+docker compose logs -f nginx
+docker compose logs -f db
 ```
 
 ### Restart Services
 
 ```bash
 # All services
-docker-compose restart
+docker compose restart
 
 # Specific service
-docker-compose restart nginx
+docker compose restart nginx
 ```
 
 ### Stop Services
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Backup Database
 
 ```bash
 # Export database
-docker-compose exec db mysqldump -u wordpress_user -p wordpress_db > backup.sql
+docker compose exec db mysqldump -u wordpress_user -p wordpress_db > backup.sql
 
 # Or use root user
-docker-compose exec db mysqldump -u root -p wordpress_db > backup.sql
+docker compose exec db mysqldump -u root -p wordpress_db > backup.sql
 ```
 
 ### Restore Database
 
 ```bash
-docker-compose exec -T db mysql -u wordpress_user -p wordpress_db < backup.sql
+docker compose exec -T db mysql -u wordpress_user -p wordpress_db < backup.sql
 ```
 
 ### Update WordPress
 
 ```bash
-docker-compose pull wordpress
-docker-compose up -d wordpress
+docker compose pull wordpress
+docker compose up -d wordpress
 ```
 
 ## Custom Themes and Plugins
@@ -227,7 +227,7 @@ The volume mappings are bi-directional:
 
 ### Notes
 
-- Restart WordPress container if themes/plugins don't appear: `docker-compose restart wordpress`
+- Restart WordPress container if themes/plugins don't appear: `docker compose restart wordpress`
 - File permissions are managed by Docker automatically
 - Any themes/plugins installed through WordPress admin will persist in these directories
 
@@ -278,7 +278,7 @@ Local directories (mounted as volumes):
 **Solutions**:
 - Verify domain DNS points to your server: `dig +short yourdomain.com`
 - Check ports 80 and 443 are open: `netstat -tuln | grep -E '80|443'`
-- Check Nginx logs: `docker-compose logs nginx`
+- Check Nginx logs: `docker compose logs nginx`
 - Wait if rate-limited (5 failures per hour limit)
 
 ### WordPress Connection Issues
@@ -286,10 +286,10 @@ Local directories (mounted as volumes):
 **Problem**: Error establishing database connection
 
 **Solutions**:
-- Check database is running: `docker-compose ps`
+- Check database is running: `docker compose ps`
 - Verify credentials in `.env`
-- Check logs: `docker-compose logs db`
-- Restart services: `docker-compose restart`
+- Check logs: `docker compose logs db`
+- Restart services: `docker compose restart`
 
 ### Upload Issues
 
@@ -319,7 +319,7 @@ Edit `nginx/conf.d/wordpress-https.conf`:
 client_max_body_size 128M;  # Increase from 64M
 ```
 
-Edit WordPress environment in `docker-compose.yml`:
+Edit WordPress environment in `docker compose.yml`:
 ```yaml
 WORDPRESS_CONFIG_EXTRA: |
   define('WP_MEMORY_LIMIT', '256M');
@@ -327,7 +327,7 @@ WORDPRESS_CONFIG_EXTRA: |
 
 ### Add Redis Caching
 
-Add to `docker-compose.yml`:
+Add to `docker compose.yml`:
 ```yaml
   redis:
     image: redis:alpine

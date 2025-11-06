@@ -34,7 +34,7 @@ mv nginx/conf.d/wordpress-http.conf.tmp nginx/conf.d/wordpress-http.conf
 
 echo ""
 echo "Starting services..."
-docker-compose up -d db wordpress nginx
+docker compose up -d db wordpress nginx
 
 echo ""
 echo "Waiting for services to be ready..."
@@ -53,7 +53,7 @@ read -p "Press Enter to continue with certificate generation..."
 
 # Get SSL certificate
 echo "Requesting SSL certificate..."
-docker-compose run --rm certbot
+docker compose run --rm certbot
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -65,7 +65,7 @@ if [ $? -eq 0 ]; then
     sed "s/yourdomain.com/$DOMAIN/g" nginx/conf.d/wordpress-https.conf.template > nginx/conf.d/wordpress-https.conf
     
     # Reload Nginx
-    docker-compose restart nginx
+    docker compose restart nginx
     
     echo ""
     echo "======================================"
@@ -90,5 +90,5 @@ else
     echo "  - Rate limit reached (Let's Encrypt allows 5 failures per hour)"
     echo ""
     echo "Your site is running on HTTP only for now."
-    echo "Fix the issues and run: docker-compose run --rm certbot"
+    echo "Fix the issues and run: docker compose run --rm certbot"
 fi

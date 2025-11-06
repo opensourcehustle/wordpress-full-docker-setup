@@ -6,11 +6,11 @@
 cd "$(dirname "$0")"
 
 echo "Attempting to renew SSL certificates..."
-docker-compose run --rm certbot renew
+docker compose run --rm certbot renew
 
 if [ $? -eq 0 ]; then
     echo "Certificate renewed successfully. Reloading Nginx..."
-    docker-compose exec nginx nginx -s reload
+    docker compose exec nginx nginx -s reload
 else
     echo "Certificate renewal failed or not due for renewal."
 fi

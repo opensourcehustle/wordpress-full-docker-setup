@@ -1,6 +1,6 @@
 # WordPress Docker Setup with SSL
 
-A complete Docker Compose configuration for running WordPress with MySQL, Nginx reverse proxy, and automatic SSL certificates via Let's Encrypt.
+A complete sudo docker compose configuration for running WordPress with MySQL, Nginx reverse proxy, and automatic SSL certificates via Let's Encrypt.
 
 ## Features
 
@@ -16,7 +16,7 @@ A complete Docker Compose configuration for running WordPress with MySQL, Nginx 
 
 ## Prerequisites
 
-- Docker and Docker Compose installed
+- Docker and sudo docker compose installed
 - Domain name pointing to your server
 - Ports 80 and 443 open in firewall
 - Root or sudo access
@@ -28,7 +28,7 @@ A complete Docker Compose configuration for running WordPress with MySQL, Nginx 
 Ensure you have all these files in your directory:
 ```
 .
-├── docker compose.yml
+├── sudo docker compose.yml
 ├── .env.example
 ├── setup.sh
 ├── renewal.sh
@@ -59,13 +59,12 @@ Edit the following values:
 
 Make sure your domain's DNS A record points to your server's IP address:
 - `example.com` → Your Server IP
-- `www.example.com` → Your Server IP
 
 ### 4. Run Setup Script
 
 ```bash
 chmod +x setup.sh
-./setup.sh
+sudo ./setup.sh
 ```
 
 The script will:
@@ -86,17 +85,14 @@ If you prefer manual setup:
 
 ```bash
 # Start database and WordPress first
-docker compose up -d db wordpress nginx
+sudo sudo docker compose up -d db wordpress nginx
 
-# Wait for services to start
-sleep 10
-```
 
 ### Obtain SSL Certificate
 
 ```bash
 # Request certificate
-docker compose run --rm certbot
+sudo sudo docker compose run --rm certbot
 
 # If successful, enable HTTPS configuration
 cp nginx/conf.d/wordpress-https.conf.template nginx/conf.d/wordpress-https.conf
@@ -105,7 +101,7 @@ cp nginx/conf.d/wordpress-https.conf.template nginx/conf.d/wordpress-https.conf
 sed -i 's/yourdomain.com/your-actual-domain.com/g' nginx/conf.d/wordpress-https.conf
 
 # Restart Nginx
-docker compose restart nginx
+sudo sudo docker compose restart nginx
 ```
 
 ## SSL Certificate Renewal
@@ -118,7 +114,7 @@ Let's Encrypt certificates expire after 90 days. Set up automatic renewal:
 chmod +x renewal.sh
 
 # Add to crontab (runs twice daily at midnight and noon)
-crontab -e
+sudo crontab -e
 
 # Add this line:
 0 0,12 * * * /path/to/your/wordpress/renewal.sh >> /var/log/certbot-renewal.log 2>&1
@@ -127,8 +123,8 @@ crontab -e
 ### Option 2: Manual Renewal
 
 ```bash
-docker compose run --rm certbot renew
-docker compose restart nginx
+sudo sudo docker compose run --rm certbot renew
+sudo sudo docker compose restart nginx
 ```
 
 ## Useful Commands
@@ -137,51 +133,51 @@ docker compose restart nginx
 
 ```bash
 # All services
-docker compose logs -f
+sudo docker compose logs -f
 
 # Specific service
-docker compose logs -f wordpress
-docker compose logs -f nginx
-docker compose logs -f db
+sudo docker compose logs -f wordpress
+sudo docker compose logs -f nginx
+sudo docker compose logs -f db
 ```
 
 ### Restart Services
 
 ```bash
 # All services
-docker compose restart
+sudo docker compose restart
 
 # Specific service
-docker compose restart nginx
+sudo docker compose restart nginx
 ```
 
 ### Stop Services
 
 ```bash
-docker compose down
+sudo docker compose down
 ```
 
 ### Backup Database
 
 ```bash
 # Export database
-docker compose exec db mysqldump -u wordpress_user -p wordpress_db > backup.sql
+sudo docker compose exec db mysqldump -u wordpress_user -p wordpress_db > backup.sql
 
 # Or use root user
-docker compose exec db mysqldump -u root -p wordpress_db > backup.sql
+sudo docker compose exec db mysqldump -u root -p wordpress_db > backup.sql
 ```
 
 ### Restore Database
 
 ```bash
-docker compose exec -T db mysql -u wordpress_user -p wordpress_db < backup.sql
+sudo docker compose exec -T db mysql -u wordpress_user -p wordpress_db < backup.sql
 ```
 
 ### Update WordPress
 
 ```bash
-docker compose pull wordpress
-docker compose up -d wordpress
+sudo docker compose pull wordpress
+sudo docker compose up -d wordpress
 ```
 
 ## Custom Themes and Plugins
@@ -227,7 +223,7 @@ The volume mappings are bi-directional:
 
 ### Notes
 
-- Restart WordPress container if themes/plugins don't appear: `docker compose restart wordpress`
+- Restart WordPress container if themes/plugins don't appear: `sudo docker compose restart wordpress`
 - File permissions are managed by Docker automatically
 - Any themes/plugins installed through WordPress admin will persist in these directories
 
@@ -278,7 +274,7 @@ Local directories (mounted as volumes):
 **Solutions**:
 - Verify domain DNS points to your server: `dig +short yourdomain.com`
 - Check ports 80 and 443 are open: `netstat -tuln | grep -E '80|443'`
-- Check Nginx logs: `docker compose logs nginx`
+- Check Nginx logs: `sudo docker compose logs nginx`
 - Wait if rate-limited (5 failures per hour limit)
 
 ### WordPress Connection Issues
@@ -286,10 +282,10 @@ Local directories (mounted as volumes):
 **Problem**: Error establishing database connection
 
 **Solutions**:
-- Check database is running: `docker compose ps`
+- Check database is running: `sudo docker compose ps`
 - Verify credentials in `.env`
-- Check logs: `docker compose logs db`
-- Restart services: `docker compose restart`
+- Check logs: `sudo docker compose logs db`
+- Restart services: `sudo docker compose restart`
 
 ### Upload Issues
 
@@ -319,7 +315,7 @@ Edit `nginx/conf.d/wordpress-https.conf`:
 client_max_body_size 128M;  # Increase from 64M
 ```
 
-Edit WordPress environment in `docker compose.yml`:
+Edit WordPress environment in `sudo docker compose.yml`:
 ```yaml
 WORDPRESS_CONFIG_EXTRA: |
   define('WP_MEMORY_LIMIT', '256M');
@@ -327,7 +323,7 @@ WORDPRESS_CONFIG_EXTRA: |
 
 ### Add Redis Caching
 
-Add to `docker compose.yml`:
+Add to `sudo docker compose.yml`:
 ```yaml
   redis:
     image: redis:alpine
